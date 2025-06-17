@@ -26,65 +26,80 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar: AppBar(title: const Text('Rompekokos')),
       body: Center(
-        child: SizedBox(
-          width: 300,
-          height: 300,
-          child: Stack(
-            children: vNodo.map((nodo) {
-              return AnimatedAlign(
-                
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                alignment: Alignment(nodo.x, nodo.y),
-                child: GestureDetector(
-                  onTap: () {
-                    if (nodo.esPivote) return;
-
-                    setState(() {
-                      final indexNodo = vNodo.indexOf(nodo);
-                      final indexPivote = vNodo.indexWhere((n) => n.esPivote);
-
-                      final nodoTap = vNodo[indexNodo];
-                      final nodoPivote = vNodo[indexPivote];
-
-                      // Verificar si están adyacentes
-                      if (((nodoTap.x - nodoPivote.x).abs() == 1 && nodoTap.y == nodoPivote.y) ||
-                          ((nodoTap.y - nodoPivote.y).abs() == 1 && nodoTap.x == nodoPivote.x)) {
-                        
-                        // Intercambiar coordenadas
-                        final tempX = nodoTap.x;
-                        final tempY = nodoTap.y;
-                        nodoTap.x = nodoPivote.x;
-                        nodoTap.y = nodoPivote.y;
-                        nodoPivote.x = tempX;
-                        nodoPivote.y = tempY;
-                      }
-                    });
-                  },
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    margin: const EdgeInsets.all(0),
-                    decoration: BoxDecoration(
-                      color: nodo.color,
-                      shape: BoxShape.rectangle,
-                      border: Border.all(color: Colors.black),
-                      borderRadius: BorderRadius.circular(5),
-
-                    ),
-                    child: Center(
-                      child: Text(
-                        nodo.mensaje,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 20,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF8B4513), // color del marco café (madera)
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.brown.shade900,
+                blurRadius: 8,
+                offset: const Offset(4, 4),
+              )
+            ],
+          ),
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              image: const DecorationImage(
+                image: AssetImage('assets/images/wood.jpg'), // Fondo de tablero
+                fit: BoxFit.cover,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Stack(
+              children: vNodo.map((nodo) {
+                return AnimatedAlign(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment(nodo.x, nodo.y),
+                  child: GestureDetector(
+                    onTap: () {
+                      if (nodo.esPivote) return;
+                      setState(() {
+                        final indexNodo = vNodo.indexOf(nodo);
+                        final indexPivote = vNodo.indexWhere((n) => n.esPivote);
+                        final nodoTap = vNodo[indexNodo];
+                        final nodoPivote = vNodo[indexPivote];
+                        if (((nodoTap.x - nodoPivote.x).abs() == 1 && nodoTap.y == nodoPivote.y) ||
+                            ((nodoTap.y - nodoPivote.y).abs() == 1 && nodoTap.x == nodoPivote.x)) {
+                          final tempX = nodoTap.x;
+                          final tempY = nodoTap.y;
+                          nodoTap.x = nodoPivote.x;
+                          nodoTap.y = nodoPivote.y;
+                          nodoPivote.x = tempX;
+                          nodoPivote.y = tempY;
+                        }
+                      });
+                    },
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      margin: const EdgeInsets.all(0),
+                      decoration: !nodo.esPivote
+                          ? BoxDecoration(
+                              color: nodo.color.withOpacity(0.85),
+                              border: Border.all(color: Colors.black),
+                              borderRadius: BorderRadius.circular(8),
+                            )
+                          : const BoxDecoration(color: Colors.transparent),
+                      child: Center(
+                        child: Text(
+                          nodo.mensaje,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ),
           ),
         ),
       ),
