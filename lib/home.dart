@@ -2,6 +2,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:puzzle_game/NodoAStar.dart';
 import 'package:puzzle_game/modelo.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:confetti/confetti.dart';
+import 'dart:async';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -11,14 +14,74 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  int movimientos = 0;
+late Stopwatch cronometro;
+int mejorTiempo = 0;
+Timer? timer;
+ConfettiController confettiController = ConfettiController(duration: Duration(seconds: 3));
   List<Modelo> vNodo = [];
   List<Modelo> vSolucion = [];
 
+
+@override
+void dispose() {
+  timer?.cancel();
+  confettiController.dispose();
+  super.dispose();
+}
   @override
   void initState() {
-    super.initState();
-    _initTableros();
+  super.initState();
+  _initTableros();
+ 
+  cronometro = Stopwatch();
+   _mezclarFichas();
+  _cargarMejorTiempo();
   }
+
+  void _cargarMejorTiempo() async {
+  final prefs = await SharedPreferences.getInstance();
+  setState(() {
+    mejorTiempo = prefs.getInt('mejorTiempo') ?? 0;
+  });
+}
+
+bool _verificarVictoria() {
+  for (int i = 0; i < vNodo.length; i++) {
+    final nodo = vNodo[i];
+    final sol = vSolucion.firstWhere((s) => s.mensaje == nodo.mensaje);
+    if (nodo.x != sol.x || nodo.y != sol.y) return false;
+  }
+  return true;
+}
+
+void _mostrarGanador() async {
+  confettiController.play();
+  int tiempoActual = cronometro.elapsed.inSeconds;
+
+  if (mejorTiempo == 0 || tiempoActual < mejorTiempo) {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('mejorTiempo', tiempoActual);
+    mejorTiempo = tiempoActual;
+  }
+
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("¡Felicidades! 🎉"),
+      content: Text(
+          "¡Has resuelto el puzzle!\nTiempo: ${tiempoActual}s\nMejor tiempo: ${mejorTiempo}s"),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text("Aceptar"),
+        ),
+      ],
+    ),
+  );
+}
 
   void _initTableros() {
     vSolucion = [
@@ -59,6 +122,14 @@ class _HomeState extends State<Home> {
     pivote.x = posiciones.last[0].toDouble();
     pivote.y = posiciones.last[1].toDouble();
 
+movimientos = 0;
+cronometro.reset();
+cronometro.start();
+
+timer?.cancel(); // Cancela cualquier anterior
+timer = Timer.periodic(const Duration(seconds: 1), (_) {
+  if (mounted) setState(() {});
+});
     setState(() {});
   }
 
@@ -96,6 +167,12 @@ class _HomeState extends State<Home> {
                           nodoTap.y = nodoPivote.y;
                           nodoPivote.x = tempX;
                           nodoPivote.y = tempY;
+                          movimientos++;
+if (_verificarVictoria()) {
+  cronometro.stop();
+  timer?.cancel();
+  _mostrarGanador();
+}
                         }
                       });
                     }
@@ -138,70 +215,93 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.brown,
         centerTitle: true,
       ),
-      body: SafeArea(
-  child: SingleChildScrollView(
-    child: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      body: Stack(
         children: [
-          const SizedBox(height: 20),
-          const Text(
-            'Objetivo:',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ConfettiWidget(
+  confettiController: confettiController,
+  blastDirectionality: BlastDirectionality.explosive,
+  shouldLoop: false,
+),
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 20),
+Text(
+  "Movimientos: $movimientos",
+  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+),
+Text(
+  "Tiempo: ${cronometro.elapsed.inSeconds}s",
+  style: const TextStyle(fontSize: 18),
+),
+Text(
+  "Mejor tiempo: ${mejorTiempo > 0 ? "$mejorTiempo s" : "—"}",
+  style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+),
+const SizedBox(height: 20),
+              const SizedBox(height: 20),
+              const Text(
+                'Objetivo:',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              _buildTablero(vSolucion, interactivo: false),
+              const SizedBox(height: 30),
+              const Text(
+                'Tu Tablero:',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.brown,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.brown.shade900,
+                      blurRadius: 8,
+                      offset: const Offset(4, 4),
+                    )
+                  ],
+                ),
+                child: _buildTablero(vNodo, interactivo: true),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _mezclarFichas,
+                icon: const Icon(Icons.shuffle),
+                label: const Text("Mezclar fichas"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.brown.shade700,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  textStyle: const TextStyle(fontSize: 16),
+                ),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton.icon(
+                onPressed: resolverPuzzleConAEstrella,
+                icon: const Icon(Icons.lightbulb),
+                label: const Text("Resolver automáticamente"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green.shade700,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  textStyle: const TextStyle(fontSize: 16),
+                ),
+              ),
+              const SizedBox(height: 40),
+            ],
           ),
-          const SizedBox(height: 10),
-          _buildTablero(vSolucion, interactivo: false),
-          const SizedBox(height: 30),
-          const Text(
-            'Tu Tablero:',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.brown,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.brown.shade900,
-                  blurRadius: 8,
-                  offset: const Offset(4, 4),
-                )
-              ],
+              ),
             ),
-            child: _buildTablero(vNodo, interactivo: true),
           ),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: _mezclarFichas,
-            icon: const Icon(Icons.shuffle),
-            label: const Text("Mezclar fichas"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.brown.shade700,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              textStyle: const TextStyle(fontSize: 16),
-            ),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton.icon(
-            onPressed: resolverPuzzleConAEstrella,
-            icon: const Icon(Icons.lightbulb),
-            label: const Text("Resolver automáticamente"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green.shade700,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              textStyle: const TextStyle(fontSize: 16),
-            ),
-          ),
-          const SizedBox(height: 40),
         ],
       ),
-    ),
-  ),
-),
     );
   }
 
