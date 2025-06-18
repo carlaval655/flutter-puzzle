@@ -147,8 +147,8 @@ timer = Timer.periodic(const Duration(seconds: 1), (_) {
   builder: (_) => AlertDialog(
     title: const Text("Solución"),
     content: SizedBox(
-      width: 320,
-      height: 320,
+      width: 300,
+      height: 300,
       child: BoardWidget(fichas: _piezasSolucion),
     ),
     actions: [
@@ -164,7 +164,7 @@ timer = Timer.periodic(const Duration(seconds: 1), (_) {
   Future<void> _resolverAutomaticamente() async {
     Set<String> visitados = {};
     List<NodoAStar> abiertos = [];
-    const int maxIteraciones = 20000;
+    const int maxIteraciones = 10000;
     int iteraciones = 0;
 
     String serializar(List<Modelo> estado) =>
