@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import '../models/modelo.dart';
 
@@ -59,27 +57,32 @@ class BoardWidget extends StatelessWidget {
               child: ficha.esPivote
                   ? const SizedBox.shrink()
                   : SizedBox(
-  width: 100,
-  height: 100,
-  child: ClipRRect(
-    borderRadius: BorderRadius.circular(8),
-    child: ficha.imagenRecortada != null
-        ? RawImage(image: ficha.imagenRecortada!)
-        : Container(
-            color: ficha.color ?? Colors.transparent,
-            child: Center(
-              child: Text(
-                ficha.mensaje,
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-  ),
-)
+                      width: 100,
+                      height: 100,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: ficha.imagenRecortada != null
+                            ? FittedBox(
+                                fit: BoxFit.cover,
+                                child: RawImage(
+                                  image: ficha.imagenRecortada!,
+                                ),
+                              )
+                            : Container(
+                                color: ficha.color ?? Colors.transparent,
+                                child: Center(
+                                  child: Text(
+                                    ficha.mensaje,
+                                    style: const TextStyle(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ),
             ),
           );
         }).toList(),
