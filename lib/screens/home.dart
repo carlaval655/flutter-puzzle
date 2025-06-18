@@ -16,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool resolviendo = false;
   late Stopwatch cronometro;
   late ConfettiController confettiController;
   Timer? timer;
@@ -153,19 +154,36 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _resolverAutomaticamente() async {
+Future<void> _resolverAutomaticamente() async {
+  if (resolviendo) return;
+
+  setState(() => resolviendo = true);
+
+  try {
     await resolverPuzzleConAEstrella(
       context: context,
       tableroActual: tableroActual,
       tableroSolucion: tableroSolucion,
       onStep: (paso) async {
+        if (!resolviendo) throw 'cancelado';
+
         setState(() {
           tableroActual = paso.map((e) => e.copy()).toList();
         });
-        await Future.delayed(const Duration(milliseconds: 500));
+
+        await Future.delayed(const Duration(milliseconds: 300));
       },
     );
+  } catch (e) {
+    if (e == 'cancelado') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Resolución cancelada.')),
+      );
+    }
+  } finally {
+    setState(() => resolviendo = false);
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -173,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFBCAAA4),
       appBar: AppBar(
         backgroundColor: Colors.brown[700],
-        title: const Text('Rompekokos', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Rompecabezas', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: Stack(
@@ -243,13 +261,28 @@ class _HomeScreenState extends State<HomeScreen> {
                         onPressed: _resolverAutomaticamente,
                         icon: const Icon(Icons.lightbulb),
                         label: const Text("Resolver automáticamente"),
+                        
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green[700],
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           textStyle: const TextStyle(fontSize: 16),
                         ),
+                        
                       ),
+                      if (resolviendo)
+  ElevatedButton.icon(
+    onPressed: () {
+      setState(() => resolviendo = false);
+    },
+    icon: const Icon(Icons.cancel),
+    label: const Text("Cancelar resolución"),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.red[700],
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+    ),
+  ),
                       const SizedBox(height: 40),
                     ],
                   ),
