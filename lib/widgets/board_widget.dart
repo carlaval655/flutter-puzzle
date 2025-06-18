@@ -66,7 +66,7 @@ class BoardWidget extends StatelessWidget {
                   : Container(
                       width: 100,
                       height: 100,
-                      margin: const EdgeInsets.all(4),
+                     
                       decoration: BoxDecoration(
                         color: ficha.color.withOpacity(0.9),
                         borderRadius: BorderRadius.circular(8),

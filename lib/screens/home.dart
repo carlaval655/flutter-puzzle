@@ -170,9 +170,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.brown[300],
+      backgroundColor: const Color(0xFFBCAAA4),
       appBar: AppBar(
-        title: const Text('Rompekokos'),
+        backgroundColor: Colors.brown[700],
+        title: const Text('Rompekokos', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: Stack(
@@ -185,46 +186,73 @@ class _HomeScreenState extends State<HomeScreen> {
           SafeArea(
             child: SingleChildScrollView(
               child: Center(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    Text("Movimientos: $movimientos"),
-                    Text("Tiempo: ${cronometro.elapsed.inSeconds}s"),
-                    Text("Mejor tiempo: ${mejorTiempo > 0 ? "$mejorTiempo s" : "—"}"),
-                    const SizedBox(height: 20),
-                    const Text("Tu Tablero:"),
-                    BoardWidget(
-                      fichas: tableroActual,
-                      interactivo: true,
-                      onCambio: (nuevoTablero) {
-                        setState(() {
-                          tableroActual = nuevoTablero;
-                          movimientos++;
-                          if (_verificarVictoria()) {
-                            cronometro.stop();
-                            timer?.cancel();
-                            _mostrarGanador();
-                          }
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: _mostrarSolucionEnModal,
-                      icon: const Icon(Icons.visibility),
-                      label: const Text("Ver objetivo"),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: _mezclarTablero,
-                      icon: const Icon(Icons.shuffle),
-                      label: const Text("Mezclar fichas"),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: _resolverAutomaticamente,
-                      icon: const Icon(Icons.lightbulb),
-                      label: const Text("Resolver automáticamente"),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      Text("Movimientos: $movimientos",
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text("Tiempo: ${cronometro.elapsed.inSeconds}s",
+                          style: const TextStyle(fontSize: 16)),
+                      const SizedBox(height: 20),
+                      const Text("Tu Tablero:",
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 10),
+                      BoardWidget(
+                        fichas: tableroActual,
+                        interactivo: true,
+                        onCambio: (nuevoTablero) {
+                          setState(() {
+                            tableroActual = nuevoTablero;
+                            movimientos++;
+                            if (_verificarVictoria()) {
+                              cronometro.stop();
+                              timer?.cancel();
+                              _mostrarGanador();
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        onPressed: _mostrarSolucionEnModal,
+                        icon: const Icon(Icons.visibility),
+                        label: const Text("Ver objetivo"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.brown[500],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          textStyle: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        onPressed: _mezclarTablero,
+                        icon: const Icon(Icons.shuffle),
+                        label: const Text("Mezclar fichas"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.brown[700],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          textStyle: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        onPressed: _resolverAutomaticamente,
+                        icon: const Icon(Icons.lightbulb),
+                        label: const Text("Resolver automáticamente"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green[700],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          textStyle: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -233,6 +261,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  
 }
