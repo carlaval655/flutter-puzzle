@@ -16,6 +16,8 @@ class ImagePuzzleScreen extends StatefulWidget {
 }
 
 class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
+  late Stopwatch cronometro;
+Timer? timer;
   File? _imageFile;
   List<Modelo> _piezasPuzzle = [];
   List<Modelo> _piezasSolucion = [];
@@ -31,6 +33,11 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
         _piezasSolucion = [];
       });
       await _procesarImagen(file);
+      cronometro = Stopwatch()..start();
+timer?.cancel();
+timer = Timer.periodic(const Duration(seconds: 1), (_) {
+  if (mounted) setState(() {});
+});
     }
   }
 
@@ -81,6 +88,8 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
   }
 
   void _mezclarFichas() {
+    cronometro.reset();
+cronometro.start();
     final random = Random();
     final fichas = _piezasPuzzle.where((f) => !f.esPivote).toList();
     fichas.shuffle(random);
@@ -150,7 +159,7 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
   Future<void> _resolverAutomaticamente() async {
     Set<String> visitados = {};
     List<NodoAStar> abiertos = [];
-    const int maxIteraciones = 10000;
+    const int maxIteraciones = 20000;
     int iteraciones = 0;
 
     String serializar(List<Modelo> estado) =>
@@ -183,14 +192,66 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
         }
 
         for (var paso in camino) {
-          setState(() {
-            _piezasPuzzle = paso.map((e) {
-              final original = _piezasPuzzle.firstWhere((m) => m.mensaje == e.mensaje);
-              return Modelo(e.x, e.y, e.mensaje, null, e.esPivote, imagenRecortada: original.imagenRecortada);
-            }).toList();
-          });
-          await Future.delayed(const Duration(milliseconds: 300));
-        }
+  setState(() {
+    _piezasPuzzle = paso.map((e) {
+      final original = _piezasPuzzle.firstWhere((m) => m.mensaje == e.mensaje);
+      return Modelo(e.x, e.y, e.mensaje, null, e.esPivote, imagenRecortada: original.imagenRecortada);
+    }).toList();
+  });
+  await Future.delayed(const Duration(milliseconds: 300));
+}
+
+// Detiene temporizador
+cronometro.stop();
+timer?.cancel();
+
+// Muestra diálogo
+final tiempo = cronometro.elapsed.inSeconds;
+showDialog(
+  context: context,
+  builder: (_) => AlertDialog(
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    backgroundColor: Colors.teal[50],
+    title: Column(
+      children: const [
+        Icon(Icons.celebration, color: Colors.green, size: 48),
+        SizedBox(height: 10),
+        Text(
+          "¡Felicidades! 🎉",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.teal,
+          ),
+        ),
+      ],
+    ),
+    content: Text(
+      "🧩 Puzzle resuelto automáticamente\n⏱️ Tiempo: ${tiempo}s",
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontSize: 18),
+    ),
+    actions: [
+      Center(
+        child: ElevatedButton.icon(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.check_circle),
+          label: const Text("Aceptar"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green[700],
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      )
+    ],
+    actionsAlignment: MainAxisAlignment.center,
+  ),
+);
         return;
       }
 
@@ -258,6 +319,18 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          if (_piezasPuzzle.isNotEmpty && cronometro.isRunning)
+  Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Text(
+      "⏱️ Tiempo: ${cronometro.elapsed.inSeconds}s",
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        color: Colors.black87,
+      ),
+    ),
+  ),
           if (_piezasPuzzle.isNotEmpty)
             BoardWidget(
               fichas: _piezasPuzzle,

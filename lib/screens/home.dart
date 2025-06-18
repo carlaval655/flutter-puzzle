@@ -112,11 +112,12 @@ class _HomeScreenState extends State<HomeScreen> {
     confettiController.play( );
     int tiempoActual = cronometro.elapsed.inSeconds;
 
+final tiempo = cronometro.elapsed.inSeconds;
 showDialog(
   context: context,
   builder: (_) => AlertDialog(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-    backgroundColor: Colors.brown[50],
+    backgroundColor: Colors.teal[50],
     title: Column(
       children: const [
         Icon(Icons.celebration, color: Colors.green, size: 48),
@@ -127,13 +128,13 @@ showDialog(
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Colors.brown,
+            color: Colors.teal,
           ),
         ),
       ],
     ),
     content: Text(
-      "🧩 Puzzle resuelto exitosamente\n⏱️ Tiempo: ${cronometro.elapsed.inSeconds}s",
+      "🧩 Puzzle resuelto \n⏱️ Tiempo: ${tiempo}s",
       textAlign: TextAlign.center,
       style: const TextStyle(fontSize: 18),
     ),
@@ -186,7 +187,7 @@ showDialog(
     required List<Modelo> tableroSolucion,
     required Future<void> Function(List<Modelo>) onStep,
   }) async {
-    const int maxIteraciones = 10000;
+    const int maxIteraciones = 20000;
     int iteraciones = 0;
 
     Set<String> visitados = {};
@@ -230,7 +231,52 @@ for (var paso in camino) {
 // 🚨 Detener cronómetro y timer si lo resolvió automáticamente
 cronometro.stop();
 timer?.cancel();
-_mostrarGanador();
+final tiempo = cronometro.elapsed.inSeconds;
+showDialog(
+  context: context,
+  builder: (_) => AlertDialog(
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    backgroundColor: Colors.teal[50],
+    title: Column(
+      children: const [
+        Icon(Icons.celebration, color: Colors.green, size: 48),
+        SizedBox(height: 10),
+        Text(
+          "¡Felicidades! 🎉",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.teal,
+          ),
+        ),
+      ],
+    ),
+    content: Text(
+      "🧩 Puzzle resuelto automáticamente\n⏱️ Tiempo: ${tiempo}s",
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontSize: 18),
+    ),
+    actions: [
+      Center(
+        child: ElevatedButton.icon(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.check_circle),
+          label: const Text("Aceptar"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green[700],
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      )
+    ],
+    actionsAlignment: MainAxisAlignment.center,
+  ),
+);
 return;
       }
 
