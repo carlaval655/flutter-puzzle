@@ -154,36 +154,134 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-Future<void> _resolverAutomaticamente() async {
-  if (resolviendo) return;
+  Future<void> resolverPuzzleConAEstrella({
+    required BuildContext context,
+    required List<Modelo> tableroActual,
+    required List<Modelo> tableroSolucion,
+    required Future<void> Function(List<Modelo>) onStep,
+  }) async {
+    const int maxIteraciones = 20000;
+    int iteraciones = 0;
 
-  setState(() => resolviendo = true);
+    Set<String> visitados = {};
+    List<NodoAStar> abiertos = [];
 
-  try {
-    await resolverPuzzleConAEstrella(
-      context: context,
-      tableroActual: tableroActual,
-      tableroSolucion: tableroSolucion,
-      onStep: (paso) async {
-        if (!resolviendo) throw 'cancelado';
+    String serializar(List<Modelo> estado) =>
+        estado.map((e) => '${e.mensaje}:${e.x},${e.y}').join('|');
 
-        setState(() {
-          tableroActual = paso.map((e) => e.copy()).toList();
-        });
+    abiertos.add(NodoAStar(
+      tableroActual.map((e) => e.copy()).toList(),
+      0,
+      _calcularHeuristica(tableroActual, tableroSolucion),
+      null,
+    ));
 
-        await Future.delayed(const Duration(milliseconds: 300));
-      },
-    );
-  } catch (e) {
-    if (e == 'cancelado') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Resolución cancelada.')),
-      );
+    while (abiertos.isNotEmpty) {
+      if (iteraciones++ > maxIteraciones) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("⏱️ No se encontró una solución en un tiempo razonable.")),
+        );
+        return;
+      }
+
+      abiertos.sort((a, b) => a.f.compareTo(b.f));
+      NodoAStar actual = abiertos.removeAt(0);
+
+      if (_calcularHeuristica(actual.estado, tableroSolucion) == 0) {
+        List<List<Modelo>> camino = [];
+        NodoAStar? nodo = actual;
+        while (nodo != null) {
+          camino.insert(0, nodo.estado);
+          nodo = nodo.padre;
+        }
+
+        for (var paso in camino) {
+          await onStep(paso);
+        }
+        return;
+      }
+
+      String clave = serializar(actual.estado);
+      if (visitados.contains(clave)) continue;
+      visitados.add(clave);
+
+      List<Modelo> estadoActual = actual.estado;
+      int indexPivote = estadoActual.indexWhere((e) => e.esPivote);
+      Modelo pivote = estadoActual[indexPivote];
+
+      List<List<int>> direcciones = [
+        [0, -1], [0, 1], [-1, 0], [1, 0]
+      ];
+
+      for (var d in direcciones) {
+        double nx = pivote.x + d[0];
+        double ny = pivote.y + d[1];
+
+        int? indexVecino = estadoActual.indexWhere((e) => e.x == nx && e.y == ny);
+        if (indexVecino == -1) continue;
+
+        List<Modelo> nuevoEstado = estadoActual.map((e) => e.copy()).toList();
+
+        Modelo nuevoPivote = nuevoEstado.firstWhere((e) => e.esPivote);
+        Modelo vecino = nuevoEstado.firstWhere((e) => e.x == nx && e.y == ny);
+
+        double tempX = vecino.x;
+        double tempY = vecino.y;
+        vecino.x = nuevoPivote.x;
+        vecino.y = nuevoPivote.y;
+        nuevoPivote.x = tempX;
+        nuevoPivote.y = tempY;
+
+        String nuevaClave = serializar(nuevoEstado);
+        if (!visitados.contains(nuevaClave)) {
+          abiertos.add(NodoAStar(
+            nuevoEstado,
+            actual.costo + 1,
+            _calcularHeuristica(nuevoEstado, tableroSolucion),
+            actual,
+          ));
+        }
+      }
     }
-  } finally {
-    setState(() => resolviendo = false);
   }
-}
+
+  int _calcularHeuristica(List<Modelo> estado, List<Modelo> solucion) {
+    int suma = 0;
+    for (var ficha in estado) {
+      if (ficha.esPivote) continue;
+      var meta = solucion.firstWhere((s) => s.mensaje == ficha.mensaje);
+      suma += (ficha.x - meta.x).abs().toInt() + (ficha.y - meta.y).abs().toInt();
+    }
+    return suma;
+  }
+
+  Future<void> _resolverAutomaticamente() async {
+    if (resolviendo) return;
+    setState(() => resolviendo = true);
+
+    try {
+      await resolverPuzzleConAEstrella(
+        context: context,
+        tableroActual: tableroActual,
+        tableroSolucion: tableroSolucion,
+        onStep: (paso) async {
+          if (!resolviendo) throw 'cancelado';
+          setState(() {
+            tableroActual = paso.map((e) => e.copy()).toList();
+          });
+          await Future.delayed(const Duration(milliseconds: 300));
+        },
+      );
+    } catch (e) {
+      if (e == 'cancelado') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Resolución cancelada.')),
+        );
+      }
+    } finally {
+      setState(() => resolviendo = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -261,28 +359,24 @@ Future<void> _resolverAutomaticamente() async {
                         onPressed: _resolverAutomaticamente,
                         icon: const Icon(Icons.lightbulb),
                         label: const Text("Resolver automáticamente"),
-                        
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green[700],
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           textStyle: const TextStyle(fontSize: 16),
                         ),
-                        
                       ),
                       if (resolviendo)
-  ElevatedButton.icon(
-    onPressed: () {
-      setState(() => resolviendo = false);
-    },
-    icon: const Icon(Icons.cancel),
-    label: const Text("Cancelar resolución"),
-    style: ElevatedButton.styleFrom(
-      backgroundColor: Colors.red[700],
-      foregroundColor: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-    ),
-  ),
+                        ElevatedButton.icon(
+                          onPressed: () => setState(() => resolviendo = false),
+                          icon: const Icon(Icons.cancel),
+                          label: const Text("Cancelar resolución"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red[700],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          ),
+                        ),
                       const SizedBox(height: 40),
                     ],
                   ),
