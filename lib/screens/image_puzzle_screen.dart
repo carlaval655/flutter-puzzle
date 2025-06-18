@@ -89,7 +89,12 @@ timer = Timer.periodic(const Duration(seconds: 1), (_) {
 
   void _mezclarFichas() {
     cronometro.reset();
-cronometro.start();
+    cronometro.start();
+
+    timer?.cancel();
+    timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
     final random = Random();
     final fichas = _piezasPuzzle.where((f) => !f.esPivote).toList();
     fichas.shuffle(random);

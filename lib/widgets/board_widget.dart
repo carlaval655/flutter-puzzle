@@ -63,7 +63,7 @@ class BoardWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                         child: ficha.imagenRecortada != null
                             ? FittedBox(
-                                fit: BoxFit.cover,
+                                fit: BoxFit.fill,
                                 child: RawImage(
                                   image: ficha.imagenRecortada!,
                                 ),
