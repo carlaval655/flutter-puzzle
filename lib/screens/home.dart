@@ -160,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required List<Modelo> tableroSolucion,
     required Future<void> Function(List<Modelo>) onStep,
   }) async {
-    const int maxIteraciones = 20000;
+    const int maxIteraciones = 10000;
     int iteraciones = 0;
 
     Set<String> visitados = {};
@@ -179,7 +179,9 @@ class _HomeScreenState extends State<HomeScreen> {
     while (abiertos.isNotEmpty) {
       if (iteraciones++ > maxIteraciones) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("⏱️ No se encontró una solución en un tiempo razonable.")),
+          const SnackBar(content: Text("⏱️ No se encontró una solución en un tiempo razonable."),
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.red,)
         );
         return;
       }
@@ -289,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFBCAAA4),
       appBar: AppBar(
         backgroundColor: Colors.brown[700],
-        title: const Text('Rompecabezas', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Rompecabezas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white)),
         centerTitle: true,
       ),
       body: Stack(

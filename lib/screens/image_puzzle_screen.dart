@@ -164,7 +164,9 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
     while (abiertos.isNotEmpty) {
       if (iteraciones++ > maxIteraciones) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("⏱️ No se encontró una solución en un tiempo razonable.")),
+          const SnackBar(content: Text("⏱️ No se encontró una solución en un tiempo razonable."),
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.red,)
         );
         return;
       }
@@ -243,6 +245,7 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFBCAAA4),
       appBar: AppBar(
         title: const Text('Rompecabezas con imagen'),
         centerTitle: true,
