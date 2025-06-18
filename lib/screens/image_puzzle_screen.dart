@@ -150,7 +150,7 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
   Future<void> _resolverAutomaticamente() async {
     Set<String> visitados = {};
     List<NodoAStar> abiertos = [];
-    const int maxIteraciones = 5000;
+    const int maxIteraciones = 10000;
     int iteraciones = 0;
 
     String serializar(List<Modelo> estado) =>

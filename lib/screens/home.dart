@@ -109,28 +109,54 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _mostrarGanador() async {
-    confettiController.play();
+    confettiController.play( );
     int tiempoActual = cronometro.elapsed.inSeconds;
 
-    if (mejorTiempo == 0 || tiempoActual < mejorTiempo) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('mejorTiempo', tiempoActual);
-      mejorTiempo = tiempoActual;
-    }
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("¡Felicidades! 🎉"),
-        content: Text("¡Puzzle resuelto!\nTiempo: ${tiempoActual}s\nMejor: ${mejorTiempo}s"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("Aceptar"),
-          )
-        ],
-      ),
-    );
+showDialog(
+  context: context,
+  builder: (_) => AlertDialog(
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    backgroundColor: Colors.brown[50],
+    title: Column(
+      children: const [
+        Icon(Icons.celebration, color: Colors.green, size: 48),
+        SizedBox(height: 10),
+        Text(
+          "¡Felicidades! 🎉",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.brown,
+          ),
+        ),
+      ],
+    ),
+    content: Text(
+      "🧩 Puzzle resuelto exitosamente\n⏱️ Tiempo: ${cronometro.elapsed.inSeconds}s",
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontSize: 18),
+    ),
+    actions: [
+      Center(
+        child: ElevatedButton.icon(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.check_circle),
+          label: const Text("Aceptar"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green[700],
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      )
+    ],
+    actionsAlignment: MainAxisAlignment.center,
+  ),
+);
   }
 
   void _mostrarSolucionEnModal() {
@@ -197,10 +223,15 @@ class _HomeScreenState extends State<HomeScreen> {
           nodo = nodo.padre;
         }
 
-        for (var paso in camino) {
-          await onStep(paso);
-        }
-        return;
+for (var paso in camino) {
+  await onStep(paso);
+}
+
+// 🚨 Detener cronómetro y timer si lo resolvió automáticamente
+cronometro.stop();
+timer?.cancel();
+_mostrarGanador();
+return;
       }
 
       String clave = serializar(actual.estado);
