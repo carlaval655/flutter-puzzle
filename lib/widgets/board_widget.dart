@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import '../models/modelo.dart';
 
@@ -24,13 +26,6 @@ class BoardWidget extends StatelessWidget {
           fit: BoxFit.cover,
         ),
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(4, 4),
-          )
-        ],
       ),
       child: Stack(
         children: fichas.map((ficha) {
@@ -63,33 +58,28 @@ class BoardWidget extends StatelessWidget {
               },
               child: ficha.esPivote
                   ? const SizedBox.shrink()
-                  : Container(
-                      width: 100,
-                      height: 100,
-                     
-                      decoration: BoxDecoration(
-                        color: ficha.color.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.black),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            offset: const Offset(2, 2),
-                            blurRadius: 6,
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          ficha.mensaje,
-                          style: const TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
+                  : SizedBox(
+  width: 100,
+  height: 100,
+  child: ClipRRect(
+    borderRadius: BorderRadius.circular(8),
+    child: ficha.imagenRecortada != null
+        ? RawImage(image: ficha.imagenRecortada!)
+        : Container(
+            color: ficha.color ?? Colors.transparent,
+            child: Center(
+              child: Text(
+                ficha.mensaje,
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+  ),
+)
             ),
           );
         }).toList(),
