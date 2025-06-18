@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,7 +17,7 @@ class ImagePuzzleScreen extends StatefulWidget {
 class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
   File? _imageFile;
   List<Modelo> _piezasPuzzle = [];
-
+  List<Modelo> _piezasSolucion = [];
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(ImageSource source) async {
@@ -26,6 +27,7 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
       setState(() {
         _imageFile = file;
         _piezasPuzzle = [];
+        _piezasSolucion = [];
       });
       await _procesarImagen(file);
     }
@@ -77,14 +79,39 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
     final uiImage = await _loadUiImage(file);
     final piezas = await _dividirImagenEnPiezas(uiImage);
     setState(() {
-      _piezasPuzzle = piezas;
+      _piezasPuzzle = piezas.map((e) => e.copy()).toList();
+      _piezasSolucion = piezas.map((e) => e.copy()).toList();
     });
+  }
+
+  void _mezclarFichas() {
+    if (_piezasPuzzle.isEmpty) return;
+    final random = Random();
+    final fichas = _piezasPuzzle.where((f) => !f.esPivote).toList();
+    fichas.shuffle(random);
+
+    final posiciones = [
+      [-1, -1], [0, -1], [1, -1],
+      [-1, 0],  [0, 0],  [1, 0],
+      [-1, 1],  [0, 1],  [1, 1],
+    ];
+
+    for (int i = 0; i < fichas.length; i++) {
+      fichas[i].x = posiciones[i][0].toDouble();
+      fichas[i].y = posiciones[i][1].toDouble();
+    }
+
+    final pivote = _piezasPuzzle.firstWhere((f) => f.esPivote);
+    pivote.x = posiciones.last[0].toDouble();
+    pivote.y = posiciones.last[1].toDouble();
+
+    setState(() {});
   }
 
   bool _verificarVictoria() {
     for (int i = 0; i < _piezasPuzzle.length; i++) {
       final nodo = _piezasPuzzle[i];
-      final meta = _piezasPuzzle.firstWhere((e) => e.mensaje == nodo.mensaje);
+      final meta = _piezasSolucion.firstWhere((e) => e.mensaje == nodo.mensaje);
       if (nodo.x != meta.x || nodo.y != meta.y) return false;
     }
     return true;
@@ -100,6 +127,22 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text("Aceptar"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarSolucion() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Solución"),
+        content: BoardWidget(fichas: _piezasSolucion),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Cerrar"),
           ),
         ],
       ),
@@ -170,6 +213,30 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
+            const SizedBox(height: 15),
+            if (_piezasPuzzle.isNotEmpty) ...[
+              ElevatedButton.icon(
+                onPressed: _mezclarFichas,
+                icon: const Icon(Icons.shuffle),
+                label: const Text('Mezclar fichas'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange[800],
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton.icon(
+                onPressed: _mostrarSolucion,
+                icon: const Icon(Icons.visibility),
+                label: const Text('Ver solución'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ),
+            ]
           ],
         ),
       ),
