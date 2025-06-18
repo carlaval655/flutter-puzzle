@@ -244,82 +244,87 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
         centerTitle: true,
         backgroundColor: Colors.teal[600],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_piezasPuzzle.isNotEmpty)
-              BoardWidget(
-                fichas: _piezasPuzzle,
-                interactivo: true,
-                onCambio: (nuevoTablero) {
-                  setState(() {
-                    _piezasPuzzle = nuevoTablero;
-                    if (_verificarVictoria()) _mostrarGanador();
-                  });
-                },
-              )
-            else if (_imageFile != null)
-              Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.teal, width: 2),
-                  image: DecorationImage(
-                    image: FileImage(_imageFile!),
-                    fit: BoxFit.cover,
-                  ),
+      body: SafeArea(
+  child: SingleChildScrollView(
+    padding: const EdgeInsets.all(16),
+    child: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (_piezasPuzzle.isNotEmpty)
+            BoardWidget(
+              fichas: _piezasPuzzle,
+              interactivo: true,
+              onCambio: (nuevoTablero) {
+                setState(() {
+                  _piezasPuzzle = nuevoTablero;
+                  if (_verificarVictoria()) _mostrarGanador();
+                });
+              },
+            )
+          else if (_imageFile != null)
+            Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.teal, width: 2),
+                image: DecorationImage(
+                  image: FileImage(_imageFile!),
+                  fit: BoxFit.cover,
                 ),
-              )
-            else
-              const Text(
-                'Selecciona una imagen para comenzar',
-                style: TextStyle(fontSize: 18),
               ),
-            const SizedBox(height: 30),
+            )
+          else
+            const Text(
+              'Selecciona una imagen para comenzar',
+              style: TextStyle(fontSize: 18),
+            ),
+          const SizedBox(height: 30),
+          ElevatedButton.icon(
+            onPressed: () => _pickImage(ImageSource.gallery),
+            icon: const Icon(Icons.photo_library),
+            label: const Text('Seleccionar de galería'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.teal[400],
+              foregroundColor: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
+            onPressed: () => _pickImage(ImageSource.camera),
+            icon: const Icon(Icons.camera_alt),
+            label: const Text('Tomar una foto'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.teal[700],
+              foregroundColor: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 20),
+          if (_piezasPuzzle.isNotEmpty) ...[
             ElevatedButton.icon(
-              onPressed: () => _pickImage(ImageSource.gallery),
-              icon: const Icon(Icons.photo_library),
-              label: const Text('Seleccionar de galería'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal[400],
-                foregroundColor: Colors.white,
-              ),
+              onPressed: _mezclarFichas,
+              icon: const Icon(Icons.shuffle),
+              label: const Text('Mezclar fichas'),
             ),
             const SizedBox(height: 10),
             ElevatedButton.icon(
-              onPressed: () => _pickImage(ImageSource.camera),
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Tomar una foto'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal[700],
-                foregroundColor: Colors.white,
-              ),
+              onPressed: _mostrarSolucion,
+              icon: const Icon(Icons.visibility),
+              label: const Text('Ver solución'),
             ),
-            const SizedBox(height: 20),
-            if (_piezasPuzzle.isNotEmpty) ...[
-              ElevatedButton.icon(
-                onPressed: _mezclarFichas,
-                icon: const Icon(Icons.shuffle),
-                label: const Text('Mezclar fichas'),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton.icon(
-                onPressed: _mostrarSolucion,
-                icon: const Icon(Icons.visibility),
-                label: const Text('Ver solución'),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton.icon(
-                onPressed: _resolverAutomaticamente,
-                icon: const Icon(Icons.lightbulb),
-                label: const Text('Resolver automáticamente'),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-              ),
-            ],
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: _resolverAutomaticamente,
+              icon: const Icon(Icons.lightbulb),
+              label: const Text('Resolver automáticamente'),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            ),
           ],
-        ),
+        ],
       ),
+    ),
+  ),
+),
     );
   }
 }
