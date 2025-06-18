@@ -129,24 +129,28 @@ class _ImagePuzzleScreenState extends State<ImagePuzzleScreen> {
 
   void _mostrarSolucion() {
     showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Solución"),
-        content: BoardWidget(fichas: _piezasSolucion),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("Cerrar"),
-          ),
-        ],
+  context: context,
+  builder: (_) => AlertDialog(
+    title: const Text("Solución"),
+    content: SizedBox(
+      width: 320,
+      height: 320,
+      child: BoardWidget(fichas: _piezasSolucion),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text("Cerrar"),
       ),
-    );
+    ],
+  ),
+);
   }
 
   Future<void> _resolverAutomaticamente() async {
     Set<String> visitados = {};
     List<NodoAStar> abiertos = [];
-    const int maxIteraciones = 20000;
+    const int maxIteraciones = 5000;
     int iteraciones = 0;
 
     String serializar(List<Modelo> estado) =>
