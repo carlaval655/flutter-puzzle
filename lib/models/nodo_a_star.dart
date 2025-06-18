@@ -1,4 +1,4 @@
-import 'package:puzzle_game/modelo.dart';
+import 'package:puzzle_game/models/modelo.dart';
 class NodoAStar {
   final List<Modelo> estado;
   final int costo;

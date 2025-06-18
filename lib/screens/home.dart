@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 
-import 'package:puzzle_game/NodoAStar.dart';
-import 'package:puzzle_game/modelo.dart';
+import 'package:puzzle_game/models/nodo_a_star.dart';
+import 'package:puzzle_game/models/modelo.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:puzzle_game/home.dart'; // Asegúrate de que este archivo exista
+import 'package:puzzle_game/screens/home.dart'; // Asegúrate de que este archivo exista
 
 void main() {
   runApp(const MyApp());
